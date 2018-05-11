@@ -11,13 +11,10 @@ import { Observable } from 'rxjs/Observable'
 export class AppComponent implements OnDestroy {
   courses$: Observable<any>;
   course$;
-  author$;
   coursesRef: AngularFireList<any>;
-  // courses: any[];
-  // subscription: Subscription;
 
   constructor(private db: AngularFireDatabase) {
-    //this.courses$ = db.list('/courses').valueChanges();
+    this.courses$ = db.list('/courses').snapshotChanges();
     //  db.list('/courses').snapshotChanges().subscribe(c => {
     //   var temp = c.map(course => {
     //     var value = course.payload.val();
@@ -33,25 +30,15 @@ export class AppComponent implements OnDestroy {
     //   });
     //   this.courses$ = Observable.of(temp);
     // });
-    this.courses$ = db.list('/courses').snapshotChanges();
 
+
+    console.log(this.courses$);
     this.course$ = db.object('/courses/1').valueChanges();
-    this.author$ = db.object('/authors/1').valueChanges();
     this.coursesRef = db.list('/courses/');
 
-    // this.author$ = db.object('/authors/1').snapshotChanges();
-
-    // console.log(this.author$.name);
-    // this.subscription = db.list('/courses').valueChanges()
-    //   .subscribe(courses => {
-    //     this.courses = courses;
-    //     console.log(this.courses);
-    //   });
   }
 
   add(course: HTMLInputElement) {
-    // this.coursesRef.push(course.value);
-    // this.aflist.push({name: course.value});
     this.coursesRef.push( course.value);
     //   name: course.value,
     //   price: 150,
@@ -62,16 +49,28 @@ export class AppComponent implements OnDestroy {
     //     {title: 'components3'}
     //   ]
     // });
+
     course.value = '';
   }
 
   update(course) {
-    console.log(course);
-    console.log(course.key);
-    console.log(course.payload);
-    console.log(course.payload.node_.value_);
+    // console.log(course);
+    // console.log(course.key);
+    console.log(course.payload.val());
+    // console.log(course.payload.node_.value_);
+
     this.db.object('/courses/'+ course.key)
-     .set(course.payload.node_.value_ + ' updated');
+     .set({
+       title: course.payload.val() + ' updated',
+       price: 150
+     });
+  }
+
+  delete(course) {
+    this.db.object('/courses/'+course.key)
+      .remove()
+      .then(x => console.log('deleted'));
+      // .catch(err =>)
   }
 
   ngOnDestroy() {
